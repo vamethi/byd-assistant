@@ -8,6 +8,8 @@ from urllib.parse import urlparse, urlencode
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 
+from odata import ODataService
+
 import json
 import os
 
@@ -36,14 +38,24 @@ def webhook():
 
 
 def processRequest(req):
-    if req.get("result").get("action") != "yahooWeatherForecast":
+    if req.get("result").get("action") != "find-status":
         return {}
-    baseurl = "https://query.yahooapis.com/v1/public/yql?"
-    yql_query = makeYqlQuery(req)
-    if yql_query is None:
-        return {}
-    yql_url = baseurl + urlencode({'q': yql_query}) + "&format=json"
-    result = urlopen(yql_url).read()
+    url = "https://services.odata.org/Northwind/Northwind.svc/Products?"
+    Service = ODataService(url, reflect_entities=True)
+    Supplier = Service.entities['Supplier']
+
+    query = Service.query(Supplier)
+    query = query.limit(1)
+    query = query.order_by(Supplier.CompanyName.asc())
+
+    for supplier in query:
+        Sname = supplier.CompanyName
+
+    for product in supplier.Products:
+        Pname = product.ProductName
+    
+    
+    result = urlopen(query).read()
     data = json.loads(result)
     res = makeWebhookResult(data)
     return res
