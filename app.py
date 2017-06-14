@@ -62,9 +62,13 @@ def makeYqlQuery(req):
 
 def makeWebhookResult(data):
     value = data.get('value')
-
+    
     item = value.get('0')
-
+    
+    print("json.dumps: ")
+    print(json.dumps(value, indent=4))
+    print(json.dumps(item, indent=4))
+    
     #speech = "Purchase Order ID is " + item.get('PurchaseOrderID') + \
     #         "and the status of this PO is " + item.get('PurchaseOrderLifeCycleStatusCodeText')
     speech = "Product ID is " + item.get('ID') + \
