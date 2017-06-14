@@ -29,6 +29,7 @@ def webhook():
     res = processRequest(req)
 
     res = json.dumps(res, indent=4)
+    print("Response:")
     print(res)
     r = make_response(res)
     r.headers['Content-Type'] = 'application/json'
@@ -79,7 +80,7 @@ def makeWebhookResult(data):
         "speech": speech,
         "displayText": speech,
         # "data": data,
-        "contextOut": [],
+        "contextOut": "",
         "source": "byd-assistant"
     }
 
