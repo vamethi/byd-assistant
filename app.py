@@ -69,7 +69,7 @@ def makeWebhookResult(data):
         return {}
 
     speech = "Product ID is " + item.get('ID') + \
-             "The description of product is " + item.get('Description')
+             "The description of this product is " + item.get('Description')
 
     print("Response:")
     print(speech)
