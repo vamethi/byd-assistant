@@ -60,13 +60,17 @@ def makeYqlQuery(req):
     return "$top=1"
 
 
-def makeWebhookResult(data):
+def makeWebhookResult(data):    
+    metadata = data.get('odata.metadata')
+    print("json.metadata: ")
+    print(json.dumps(metadata, indent=4))
+    
     value = data.get('value')
-    
-    item = value.get('0')
-    
-    print("json.dumps: ")
+    print("json.value: ")
     print(json.dumps(value, indent=4))
+    
+    item = value.get('0')    
+    print("json.item: ")
     print(json.dumps(item, indent=4))
     
     #speech = "Purchase Order ID is " + item.get('PurchaseOrderID') + \
