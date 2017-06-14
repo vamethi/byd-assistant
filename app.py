@@ -79,7 +79,7 @@ def makeWebhookResult(data):
         "speech": speech,
         "displayText": speech,
         # "data": data,
-        # "contextOut": [],
+        "contextOut": [],
         "source": "byd-assistant"
     }
 
