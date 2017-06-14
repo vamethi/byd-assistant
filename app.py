@@ -8,8 +8,6 @@ from urllib.parse import urlparse, urlencode
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 
-from odata import ODataService
-
 import json
 import os
 
@@ -40,35 +38,39 @@ def webhook():
 def processRequest(req):
     if req.get("result").get("action") != "find-status":
         return {}
-    url = "https://services.odata.org/Northwind/Northwind.svc/Products?"
-    Service = ODataService(url, reflect_entities=True)
-    Supplier = Service.entities['Supplier']
-
-    query = Service.query(Supplier)
-    query = query.limit(1)
-    query = query.order_by(Supplier.CompanyName.asc())
-
-    for supplier in query:
-        Sname = supplier.CompanyName
-
-    for product in supplier.Products:
-        Pname = product.ProductName
-    
-    
-    result = urlopen(query).read()
+    baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
+    yql_query = makeYqlQuery(req)
+    if yql_query is None:
+        return {}
+    yql_url = baseurl + urlencode({yql_query}) + "&$format=json"
+    result = urlopen(yql_url).read()
     data = json.loads(result)
     res = makeWebhookResult(data)
     return res
 
+
+def makeYqlQuery(req):
+    result = req.get("result")
+    parameters = result.get("parameters")
+    """city = parameters.get("geo-city")
+    if city is None:
+        return None """
+
+    return "$top=1"
+
+
 def makeWebhookResult(data):
-    query = data.get('query')
-    if query is None:
+    value = data.get('value')
+    if value is None:
         return {}
 
-    #speech = "Today in " + location.get('city') + ": " + condition.get('text') + \
-    #         ", the temperature is " + condition.get('temp') + " " + units.get('temperature')
-    
-    speech = query
+    item = value.get('0')
+    if item is None:
+        return {}
+
+    speech = "Product ID is " + item.get('ID') + \
+             "The description of product is " + item.get('Description')
+
     print("Response:")
     print(speech)
 
@@ -77,7 +79,7 @@ def makeWebhookResult(data):
         "displayText": speech,
         # "data": data,
         # "contextOut": [],
-        "source": "apiai-weather-webhook-sample"
+        "source": "byd-assistant"
     }
 
 
@@ -86,4 +88,4 @@ if __name__ == '__main__':
 
     print("Starting app on port %d" % port)
 
-    app.run(debug=False, port=port, host='0.0.0.0')
+app.run(debug=False, port=port, host='0.0.0.0')
