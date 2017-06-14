@@ -37,16 +37,14 @@ def webhook():
 
 
 def processRequest(req):
-    #if req.get("result").get("action") != "find-status":
-     #   return {}
     baseurl = "https://my316075.sapbydesign.com/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
     yql_query = makeYqlQuery(req)
-    if yql_query is None:
-        return {}
-    yql_url = baseurl + urlencode({yql_query}) + "&$format=json"
+    yql_url = baseurl + yql_query + "&$format=json"
     print(yql_url)
     result = urlopen(yql_url).read()
     data = json.loads(result)
+    print("data")
+    print(data)
     res = makeWebhookResult(data)
     return res
 
@@ -63,12 +61,8 @@ def makeYqlQuery(req):
 
 def makeWebhookResult(data):
     value = data.get('value')
-    if value is None:
-        return {}
 
     item = value.get('0')
-    if item is None:
-        return {}
 
     speech = "Purchase Order ID is " + item.get('PurchaseOrderID') + \
              "and the status of this PO is " + item.get('PurchaseOrderLifeCycleStatusCodeText')
