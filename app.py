@@ -39,7 +39,7 @@ def webhook():
 def processRequest(req):
     #if req.get("result").get("action") != "find-status":
      #   return {}
-    baseurl = "http://services.odata.org/Northwind/Northwind.svc/Products?"
+    baseurl = "https://my316075.sapbydesign.com/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
     yql_query = makeYqlQuery(req)
     if yql_query is None:
         return {}
@@ -52,9 +52,9 @@ def processRequest(req):
 
 
 def makeYqlQuery(req):
-    result = req.get("result")
+    """result = req.get("result")
     parameters = result.get("parameters")
-    """city = parameters.get("geo-city")
+    city = parameters.get("geo-city")
     if city is None:
         return None """
 
@@ -70,8 +70,8 @@ def makeWebhookResult(data):
     if item is None:
         return {}
 
-    speech = "Product ID is " + item.get('ID') + \
-             "The description of this product is " + item.get('Description')
+    speech = "Purchase Order ID is " + item.get('PurchaseOrderID') + \
+             "and the status of this PO is " + item.get('PurchaseOrderLifeCycleStatusCodeText')
 
     print("Response:")
     print(speech)
