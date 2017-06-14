@@ -38,7 +38,7 @@ def webhook():
 def processRequest(req):
     #if req.get("result").get("action") != "find-status":
      #   return {}
-    baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
+    baseurl = "http://services.odata.org/Northwind/Northwind.svc/Products?"
     yql_query = makeYqlQuery(req)
     if yql_query is None:
         return {}
