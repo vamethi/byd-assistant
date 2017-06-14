@@ -67,16 +67,12 @@ def makeWebhookResult(data):
     
     value = data.get('value')
     print("json.value: ")
-    print(json.dumps(value, indent=4))
-    
-    item = value.get('0')    
-    print("json.item: ")
-    print(json.dumps(item, indent=4))
+    print(json.dumps(value, indent=4))   
     
     #speech = "Purchase Order ID is " + item.get('PurchaseOrderID') + \
     #         "and the status of this PO is " + item.get('PurchaseOrderLifeCycleStatusCodeText')
-    speech = "Product ID is " + item.get('ID') + \
-             "The description of product is " + item.get('Description')
+    speech = "Product ID is " + value.get('ProductID') + \
+             "The description of product is " + item.get('ProductName')
     
     print("Response:")
     print(speech)
