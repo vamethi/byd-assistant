@@ -37,8 +37,8 @@ def webhook():
 
 
 def processRequest(req):
-    #baseurl = "https://my316075.sapbydesign.com/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
-    baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
+    baseurl = "https://my316075.sapbydesign.com/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
+    #baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
     yql_query = makeYqlQuery(req)
     yql_url = baseurl + yql_query + "&$format=json"
     print(yql_url)
@@ -65,19 +65,20 @@ def makeWebhookResult(data):
     print("json.value: ")
     print(json.dumps(value, indent=4)) 
     
-    prodID = value[0].get('ProductID')
+    """prodID = value[0].get('ProductID')
     print("json.ID: ")
     print(json.dumps(prodID, indent=4)) 
     
     prodName = value[0].get('ProductName')
     print("json.name: ")
     print(json.dumps(prodName, indent=4)) 
-    
-    #speech = "Purchase Order ID is " + item.get('PurchaseOrderID') + \
-    #         "and the status of this PO is " + item.get('PurchaseOrderLifeCycleStatusCodeText')
+        
     speech = "Product ID is " + str(prodID) + \
-             "The description of product is " + prodName
-    
+             "The description of product is " + prodName """
+        
+    speech = "Purchase Order ID is " + str(value[0].get('PurchaseOrderID')) + \
+             " and the status of this PO is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
+        
     print("Response:")
     print(speech)
 
