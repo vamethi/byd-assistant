@@ -75,8 +75,8 @@ def makeWebhookResult(data):
     
     #speech = "Purchase Order ID is " + item.get('PurchaseOrderID') + \
     #         "and the status of this PO is " + item.get('PurchaseOrderLifeCycleStatusCodeText')
-    speech = "Product ID is " + value[0].get('ProductID') + \
-             "The description of product is " + value[0].get('ProductName')
+    speech = "Product ID is " + prodID + \
+             "The description of product is " + prodName
     
     print("Response:")
     print(speech)
@@ -85,7 +85,7 @@ def makeWebhookResult(data):
         "speech": speech,
         "displayText": speech,
         # "data": data,
-        "contextOut": "",
+        #"contextOut": "",
         "source": "byd-assistant"
     }
 
