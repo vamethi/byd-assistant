@@ -37,11 +37,18 @@ def webhook():
 
 
 def processRequest(req):
-    #baseurl = "https://my316075.sapbydesign.com/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
-    baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
+    baseurl = "https://my316075.sapbydesign.com/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
+    #baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
     yql_query = makeYqlQuery(req)
     yql_url = baseurl + yql_query + "&$format=json"
     print(yql_url)
+    auth_handler = urllib.request.HTTPBasicAuthHandler()
+    auth_handler.add_password(realm='PDQ Application',
+                              uri='https://my316075.sapbydesign.com',
+                              user='odata_demo',
+                              passwd='Welcome01')
+    opener = urllib.request.build_opener(auth_handler)
+    urllib.request.install_opener(opener)
     result = urlopen(yql_url).read()
     data = json.loads(result)
     print("data")
@@ -61,11 +68,11 @@ def makeYqlQuery(req):
 
 
 def makeWebhookResult(data):
-    #value = data.get('result')
-    #print("json.result: ")
-    #print(json.dumps(value, indent=4)) 
+    value = data.get('result')
+    print("json.result: ")
+    print(json.dumps(value, indent=4)) 
     
-    value = data.get('value')
+    """value = data.get('value')
     print("json.value: ")
     print(json.dumps(value, indent=4)) 
     
@@ -78,10 +85,10 @@ def makeWebhookResult(data):
     print(json.dumps(prodName, indent=4)) 
         
     speech = "Product ID is " + str(prodID) + \
-             "The description of product is " + prodName
+             "The description of product is " + prodName"""
         
-    #speech = "Purchase Order ID is " + str(value[0].get('PurchaseOrderID')) + \
-    #         " and the status of this PO is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
+    speech = "Purchase Order ID is " + str(value[0].get('PurchaseOrderID')) + \
+             " and the status of this PO is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
         
     print("Response:")
     print(speech)
