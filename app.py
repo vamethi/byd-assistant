@@ -4,9 +4,7 @@ from __future__ import print_function
 from future.standard_library import install_aliases
 install_aliases()
 
-from urllib.parse import urlparse, urlencode
-from urllib.request import urlopen, Request
-from urllib.error import HTTPError
+import http.client, base64
 
 import json
 import os
@@ -37,25 +35,30 @@ def webhook():
 
 
 def processRequest(req):
-    baseurl = "https://my316075.sapbydesign.com/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
+    conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
+    baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
     #baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
     yql_query = makeYqlQuery(req)
     yql_url = baseurl + yql_query + "&$format=json"
     print(yql_url)
-    auth_handler = urllib.request.HTTPBasicAuthHandler()
-    auth_handler.add_password(realm='PDQ Application',
-                              uri='https://my316075.sapbydesign.com',
-                              user='odata_demo',
-                              passwd='Welcome01')
-    opener = urllib.request.build_opener(auth_handler)
-    urllib.request.install_opener(opener)
-    result = urlopen(yql_url).read()
+    
+    base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
+    print(base64string)
+    headers = {
+                'authorization': "Basic " + base64string
+	          }
+    
+    conn.request("GET", yql_url, headers=headers)
+    res = conn.getresponse()
+    result = res.read()
+    print("result")
+    print(result)
+    
     data = json.loads(result)
     print("data")
     print(data)
     res = makeWebhookResult(data)
     return res
-
 
 def makeYqlQuery(req):
     """result = req.get("result")
