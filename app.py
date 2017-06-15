@@ -71,8 +71,8 @@ def makeYqlQuery(req):
 
 
 def makeWebhookResult(data):
-    value = data.get('result')
-    print("json.result: ")
+    value = data.get('results')
+    print("json.results: ")
     print(json.dumps(value, indent=4)) 
     
     """value = data.get('value')
