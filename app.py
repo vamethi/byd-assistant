@@ -75,7 +75,7 @@ def makeWebhookResult(data):
     
     #speech = "Purchase Order ID is " + item.get('PurchaseOrderID') + \
     #         "and the status of this PO is " + item.get('PurchaseOrderLifeCycleStatusCodeText')
-    speech = "Product ID is " + str(prodID) + \ +
+    speech = "Product ID is " + str(prodID) + \
              "The description of product is " + prodName
     
     print("Response:")
