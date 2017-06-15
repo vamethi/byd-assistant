@@ -61,11 +61,15 @@ def makeYqlQuery(req):
 
 
 def makeWebhookResult(data):
-    value = data.get('value')
+    value = data.get('result')
+    print("json.result: ")
+    print(json.dumps(value, indent=4)) 
+    
+    """value = data.get('value')
     print("json.value: ")
     print(json.dumps(value, indent=4)) 
     
-    """prodID = value[0].get('ProductID')
+    prodID = value[0].get('ProductID')
     print("json.ID: ")
     print(json.dumps(prodID, indent=4)) 
     
