@@ -71,7 +71,7 @@ def makeWebhookResult(data):
     print("json.d: ")
     print(json.dumps(d, indent=4))
     
-    value = data.get('results')
+    value = d.get('results')
     print("json.results: ")
     print(json.dumps(value, indent=4))
 	
