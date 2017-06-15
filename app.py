@@ -40,10 +40,8 @@ def processRequest(req):
     #baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
     yql_query = makeYqlQuery(req)
     yql_url = baseurl + yql_query + "&$format=json"
-    print(yql_url)
     
     base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
-    print(base64string)
     headers = {
                 'authorization': "Basic " + base64string
 	          }
@@ -51,8 +49,6 @@ def processRequest(req):
     conn.request("GET", yql_url, headers=headers)
     res = conn.getresponse()
     result = res.read()
-    print("result")
-    print(result)
     
     data = json.loads(result)
     print("data")
@@ -71,7 +67,7 @@ def makeYqlQuery(req):
 
 
 def makeWebhookResult(data):
-    value = data["results"]
+    value = data['results']
     print("json.results: ")
     print(json.dumps(value, indent=4)) 
     
