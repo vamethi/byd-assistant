@@ -43,7 +43,7 @@ def processRequest(req):
 		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
 		#baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
 		yql_query = makeYqlQuery(req)
-		yql_url = baseurl + yql_query + "$format=json"
+		yql_url = baseurl + yql_query + "&$format=json"
 		print(yql_url)
 		base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
 		headers = {
