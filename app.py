@@ -67,38 +67,38 @@ def makeQuery(req):
     result = req.get("result")
     parameters = result.get("parameters")
     poid = parameters.get("id")
-	status = parameters.get("status")
+    status = parameters.get("status")
     print("PO ID", poid)
     #if poid is None:
     #    return None
-	if action == "find-status":	
-    	return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
-	elif action == "find-count":
-		return "?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
-	else:
-		return {}
+    if action == "find-status":	
+        return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
+    elif action == "find-count":
+        return "?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
+    else:
+        return {}
 	
 def makeWebhookResult(data):
     if action == "find-status":		
-		d = data.get('d')
-		value = d.get('results')
-		print("json.results: ")
-		print(json.dumps(value, indent=4))
-		speech = "The status of Purchase Order ID " + str(value[0].get('PurchaseOrderID')) + \
+        d = data.get('d')
+        value = d.get('results')
+        print("json.results: ")
+        print(json.dumps(value, indent=4))
+        speech = "The status of Purchase Order ID " + str(value[0].get('PurchaseOrderID')) + \
              	 " is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
     
-	elif action == "find-count":
-		if data > 1:
-			speech = "There are " + data + \
+    elif action == "find-count":
+        if data > 1:
+            speech = "There are " + data + \
              	 " purchase orders in the system with " + status + "status"
-		elif data = 1:
-			speech = "There is " + data + \
+        elif data = 1:
+            speech = "There is " + data + \
              	 " purchase order in the system with " + status + "status"
-		else:
-			speech = "There are no purchase orders in the system with " + status + "status"
-	
-	else:
-		speech = "I did not understand you, please try again"
+        else:
+            speech = "There are no purchase orders in the system with " + status + "status"
+
+    else:
+        speech = "I did not understand you, please try again"
 	
     print("Response:")
     print(speech)
