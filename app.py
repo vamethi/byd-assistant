@@ -35,8 +35,6 @@ def webhook():
 
 
 def processRequest(req):
-	action = req.get("result").get("action")
-	if action == "find-status":		
 		conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
 		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/"
 		query = makeQuery(req)
@@ -57,20 +55,16 @@ def processRequest(req):
 		print("data")
 		print(data)
 		res = makeWebhookResult(data)
-		return res
-	
-	else:
-		print("action not found")
-		return {}
+		return res	
 
 def makeQuery(req):
     result = req.get("result")
     parameters = result.get("parameters")
     poid = parameters.get("id")
     status = parameters.get("status")
-    print("PO ID", poid)
-    #if poid is None:
-    #    return None
+    print("PO ID and status ", poid, status)
+	
+	action = req.get("result").get("action")
     if action == "find-status":	
         return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
     elif action == "find-count":
@@ -79,6 +73,7 @@ def makeQuery(req):
         return {}
 	
 def makeWebhookResult(data):
+	action = req.get("result").get("action")
     if action == "find-status":		
         d = data.get('d')
         value = d.get('results')
