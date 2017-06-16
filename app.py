@@ -84,10 +84,10 @@ def makeWebhookResult(data, req):
     
     elif action == "find-count":
         if data > 1:
-            speech = "There are " + data + \
+            speech = "There are " + str(data) + \
              	 " purchase orders in the system with " + status + "status"
         elif data == 1:
-            speech = "There is " + data + \
+            speech = "There is " + str(data) + \
              	 " purchase order in the system with " + status + "status"
         else:
             speech = "There are no purchase orders in the system with " + status + "status"
