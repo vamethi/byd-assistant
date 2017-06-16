@@ -70,7 +70,7 @@ def makeYqlQuery(req):
     if poid is None:
         return None
 
-    return "$filter=PurchaseOrderID eq " + "'" poid +"'"
+    return "$filter=PurchaseOrderID eq " + "'" + str(poid) + "'"
 
 
 def makeWebhookResult(data):
