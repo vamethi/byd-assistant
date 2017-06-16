@@ -91,7 +91,7 @@ def makeWebhookResult(data):
         if data > 1:
             speech = "There are " + data + \
              	 " purchase orders in the system with " + status + "status"
-        elif data = 1:
+        elif data == 1:
             speech = "There is " + data + \
              	 " purchase order in the system with " + status + "status"
         else:
