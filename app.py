@@ -64,12 +64,13 @@ def makeQuery(req):
     status = parameters.get("status")
     print("PO ID and status ", poid, status)
 	
-    action = result.get("action")
-    print(action)
+    action = result.get("action")    
     if action == "find-status":	
         return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
     elif action == "find-count":
-        return "?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
+        qry = "$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
+        print(qry)
+        return qry
     else:
         return {}
 	
