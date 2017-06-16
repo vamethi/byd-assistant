@@ -36,21 +36,18 @@ def webhook():
 
 def processRequest(req):
 	action = req.get("result").get("action")
-	print("action")
-	print(action)
 	if action == "find-status":		
 		conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
-		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
-		#baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
-		yql_query = makeYqlQuery(req)
-		yql_url = baseurl + yql_query
-		print(yql_url)
+		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/"
+		query = makeQuery(req)
+		qry_url = baseurl + query
+		print(yry_url)
 		base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
 		headers = {
 					'authorization': "Basic " + base64string
 				  }
 
-		conn.request("GET", yql_url, headers=headers)
+		conn.request("GET", yry_url, headers=headers)
 		res = conn.getresponse()
 		result = res.read()
 		print("result")
@@ -61,46 +58,48 @@ def processRequest(req):
 		print(data)
 		res = makeWebhookResult(data)
 		return res
+	
 	else:
 		print("action not found")
 		return {}
 
-def makeYqlQuery(req):
+def makeQuery(req):
     result = req.get("result")
     parameters = result.get("parameters")
     poid = parameters.get("id")
+	status = parameters.get("status")
     print("PO ID", poid)
     #if poid is None:
     #    return None
-
-    return "%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
-	#return "$top=1"
-
-def makeWebhookResult(data):
-    d = data.get('d')
- 
-    value = d.get('results')
-    print("json.results: ")
-    print(json.dumps(value, indent=4))
+	if action == "find-status":	
+    	return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
+	elif action == "find-count":
+		return "?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
+	else:
+		return {}
 	
-    """value = data.get('value')
-    print("json.value: ")
-    print(json.dumps(value, indent=4)) 
+def makeWebhookResult(data):
+    if action == "find-status":		
+		d = data.get('d')
+		value = d.get('results')
+		print("json.results: ")
+		print(json.dumps(value, indent=4))
+		speech = "The status of Purchase Order ID " + str(value[0].get('PurchaseOrderID')) + \
+             	 " is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
     
-    prodID = value[0].get('ProductID')
-    print("json.ID: ")
-    print(json.dumps(prodID, indent=4)) 
-    
-    prodName = value[0].get('ProductName')
-    print("json.name: ")
-    print(json.dumps(prodName, indent=4)) 
-        
-    speech = "Product ID is " + str(prodID) + \
-             "The description of product is " + prodName"""
-        
-    speech = "Purchase Order ID is " + str(value[0].get('PurchaseOrderID')) + \
-             " and the status of this PO is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
-        
+	elif action == "find-count":
+		if data > 1:
+			speech = "There are " + data + \
+             	 " purchase orders in the system with " + status + "status"
+		elif data = 1:
+			speech = "There is " + data + \
+             	 " purchase order in the system with " + status + "status"
+		else:
+			speech = "There are no purchase orders in the system with " + status + "status"
+	
+	else:
+		speech = "I did not understand you, please try again"
+	
     print("Response:")
     print(speech)
 
