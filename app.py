@@ -74,6 +74,7 @@ def makeQuery(req):
 	
 def makeWebhookResult(data, req):
     action = req.get("result").get("action")
+    print(action, data)
     if action == "find-status":		
         d = data.get('d')
         value = d.get('results')
