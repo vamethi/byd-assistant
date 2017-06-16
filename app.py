@@ -36,7 +36,7 @@ def webhook():
 
 def processRequest(req):
 	action = req.get("result").get("action")
-	if action = "find-status":		
+	if action == "find-status":		
 		conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
 		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
 		#baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
