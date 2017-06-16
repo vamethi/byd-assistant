@@ -21,8 +21,8 @@ app = Flask(__name__)
 def webhook():
     req = request.get_json(silent=True, force=True)
 
-    print("Request:")
-    print(json.dumps(req, indent=4))
+    #print("Request:")
+    #print(json.dumps(req, indent=4))
 
     res = processRequest(req)
 
@@ -35,35 +35,39 @@ def webhook():
 
 
 def processRequest(req):
-    conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
-    baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
-    #baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
-    yql_query = makeYqlQuery(req)
-    yql_url = baseurl + yql_query + "&$format=json"
-    
-    base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
-    headers = {
-                'authorization': "Basic " + base64string
-	          }
-    
-    conn.request("GET", yql_url, headers=headers)
-    res = conn.getresponse()
-    result = res.read()
-    
-    data = json.loads(result)
-    print("data")
-    print(data)
-    res = makeWebhookResult(data)
-    return res
+	action = req.get("result").get("action")
+	if action = "find-status":		
+		conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
+		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
+		#baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
+		yql_query = makeYqlQuery(req)
+		yql_url = baseurl + yql_query + "&$top=1&$format=json"
+
+		base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
+		headers = {
+					'authorization': "Basic " + base64string
+				  }
+
+		conn.request("GET", yql_url, headers=headers)
+		res = conn.getresponse()
+		result = res.read()
+
+		data = json.loads(result)
+		print("data")
+		print(data)
+		res = makeWebhookResult(data)
+		return res
+	else:
+		return {}
 
 def makeYqlQuery(req):
-    """result = req.get("result")
+    result = req.get("result")
     parameters = result.get("parameters")
-    city = parameters.get("geo-city")
-    if city is None:
-        return None """
+    poid = parameters.get("id")
+    if poid is None:
+        return None
 
-    return "$top=1"
+    return "$filter=PurchaseOrderID eq " + poid
 
 
 def makeWebhookResult(data):
