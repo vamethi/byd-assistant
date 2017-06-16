@@ -54,7 +54,7 @@ def processRequest(req):
 		data = json.loads(result)
 		print("data")
 		print(data)
-		res = makeWebhookResult(data)
+		res = makeWebhookResult(data, req)
 		return res	
 
 def makeQuery(req):
@@ -64,7 +64,8 @@ def makeQuery(req):
     status = parameters.get("status")
     print("PO ID and status ", poid, status)
 	
-    action = req.get("result").get("action")
+    action = result.get("action")
+	print(action)
     if action == "find-status":	
         return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
     elif action == "find-count":
@@ -72,7 +73,7 @@ def makeQuery(req):
     else:
         return {}
 	
-def makeWebhookResult(data):
+def makeWebhookResult(data, req):
     action = req.get("result").get("action")
     if action == "find-status":		
         d = data.get('d')
