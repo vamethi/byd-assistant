@@ -43,7 +43,7 @@ def processRequest(req):
 		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
 		#baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
 		yql_query = makeYqlQuery(req)
-		yql_url = baseurl + yql_query + "&$format=json"
+		yql_url = baseurl + yql_query + "&$top=2&$format=json"
 		print(yql_url)
 		base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
 		headers = {
@@ -74,14 +74,12 @@ def makeYqlQuery(req):
     #    return None
 
     #return "$filter=PurchaseOrderID eq " + "'" + poid + "'"
-    return "$filter=PurchaseOrderID eq '2'"
+    return "$filter=BuyerPartyID eq '1000'"
 	#return "$top=1"
 
 def makeWebhookResult(data):
     d = data.get('d')
-    print("json.d: ")
-    print(json.dumps(d, indent=4))
-    
+ 
     value = d.get('results')
     print("json.results: ")
     print(json.dumps(value, indent=4))
