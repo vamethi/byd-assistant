@@ -65,7 +65,7 @@ def makeQuery(req):
     print("PO ID and status ", poid, status)
 	
     action = result.get("action")
-	print(action)
+    print(action)
     if action == "find-status":	
         return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
     elif action == "find-count":
