@@ -84,16 +84,17 @@ def makeWebhookResult(data, req):
     
     elif action == "find-count":        
         if int(data) > 1:
-            speech = "There are " + str(data) + "purchase orders in the system with " + status + "status"
-            print(speech)
+            speech = "There are " + str(data) + "purchase orders in the system with " + \
+                      req.get("result").get("parameters").get("status") + "status"
         elif int(data) == 1:
-            speech = "There is " + str(data) + " purchase order in the system with " + status + "status"
+            speech = "There is " + str(data) + " purchase order in the system with " + \
+                      req.get("result").get("parameters").get("status") + "status"
         else:
-            speech = "There are no purchase orders in the system with " + status + "status"
-        print(speech)
+            speech = "There are no purchase orders in the system with " + \
+                      req.get("result").get("parameters").get("status") + "status"
     else:
         speech = "I did not understand you, please try again"
-    print(speech)
+	
     print("Response:")
     print(speech)
 
