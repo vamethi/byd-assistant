@@ -69,12 +69,12 @@ def makeYqlQuery(req):
     result = req.get("result")
     parameters = result.get("parameters")
     poid = parameters.get("id")
-	print("PO ID", poid)
+    print("PO ID", poid)
     #if poid is None:
     #    return None
 
     #return "$filter=PurchaseOrderID eq " + "'" + poid + "'"
-	return "$top=1"
+    return "$top=1"
 
 def makeWebhookResult(data):
     d = data.get('d')
