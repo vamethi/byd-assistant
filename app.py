@@ -82,13 +82,13 @@ def makeWebhookResult(data, req):
         speech = "The status of Purchase Order ID " + str(value[0].get('PurchaseOrderID')) + \
              	 " is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
     
-    elif action == "find-count":
-        print(action, int(data))
+    elif action == "find-count":        
         if int(data) > 1:
-            speech = "There are " + data + \
+            print(action, int(data))
+            speech = "There are " + str(data) + \
              	 " purchase orders in the system with " + status + "status"
         elif int(data) == 1:
-            speech = "There is " + data + \
+            speech = "There is " + str(data) + \
              	 " purchase order in the system with " + status + "status"
         else:
             speech = "There are no purchase orders in the system with " + status + "status"
