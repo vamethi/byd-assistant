@@ -53,6 +53,8 @@ def processRequest(req):
 		conn.request("GET", yql_url, headers=headers)
 		res = conn.getresponse()
 		result = res.read()
+		print("result")
+		print(result)
 
 		data = json.loads(result)
 		print("data")
