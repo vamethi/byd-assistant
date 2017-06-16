@@ -73,8 +73,7 @@ def makeQuery(req):
         return {}
 	
 def makeWebhookResult(data, req):
-    action = req.get("result").get("action")
-    print(action, data)
+    action = req.get("result").get("action")    
     if action == "find-status":		
         d = data.get('d')
         value = d.get('results')
@@ -84,11 +83,12 @@ def makeWebhookResult(data, req):
              	 " is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
     
     elif action == "find-count":
-        if data > 1:
-            speech = "There are " + str(data) + \
+        print(action, int(data))
+        if int(data) > 1:
+            speech = "There are " + data + \
              	 " purchase orders in the system with " + status + "status"
-        elif data == 1:
-            speech = "There is " + str(data) + \
+        elif int(data) == 1:
+            speech = "There is " + data + \
              	 " purchase order in the system with " + status + "status"
         else:
             speech = "There are no purchase orders in the system with " + status + "status"
