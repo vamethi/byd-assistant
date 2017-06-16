@@ -40,12 +40,13 @@ def processRequest(req):
 	print(action)
 	if action == "find-status":		
 		conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
+		print(conn)
 		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/?"
 		#baseurl = "https://services.odata.org/Northwind/Northwind.svc/Products?"
 		yql_query = makeYqlQuery(req)
 		yql_url = baseurl + yql_query + "&$format=json"
 		print(yql_url)
-		base64string = base64.encodestring(('%s:%s' % ("administration01", "Welcome1")).encode()).decode().replace('\n', '')    
+		base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
 		headers = {
 					'authorization': "Basic " + base64string
 				  }
@@ -69,8 +70,8 @@ def makeYqlQuery(req):
     result = req.get("result")
     parameters = result.get("parameters")
     poid = parameters.get("id")
-    if poid is None:
-        return None
+    #if poid is None:
+    #    return None
 
     #return "$filter=PurchaseOrderID eq " + "'" + str(poid) + "'"
 	return "$top=1"
