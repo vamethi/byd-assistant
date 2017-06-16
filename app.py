@@ -39,13 +39,13 @@ def processRequest(req):
 		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/"
 		query = makeQuery(req)
 		qry_url = baseurl + query
-		print(yry_url)
+		print(qry_url)
 		base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
 		headers = {
 					'authorization': "Basic " + base64string
 				  }
 
-		conn.request("GET", yry_url, headers=headers)
+		conn.request("GET", qry_url, headers=headers)
 		res = conn.getresponse()
 		result = res.read()
 		print("result")
@@ -67,10 +67,8 @@ def makeQuery(req):
     action = result.get("action")    
     if action == "find-status":	
         return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
-    elif action == "find-count":
-        qry = "$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
-        print(qry)
-        return qry
+    elif action == "find-count":               
+        return "$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
     else:
         return {}
 	
