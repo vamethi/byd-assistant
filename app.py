@@ -45,7 +45,7 @@ def processRequest(req):
 		yql_query = makeYqlQuery(req)
 		yql_url = baseurl + yql_query + "&$format=json"
 		print(yql_url)
-		base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
+		base64string = base64.encodestring(('%s:%s' % ("administration01", "Welcome1")).encode()).decode().replace('\n', '')    
 		headers = {
 					'authorization': "Basic " + base64string
 				  }
