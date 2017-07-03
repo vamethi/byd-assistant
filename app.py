@@ -78,10 +78,9 @@ def makeQuery(req, conn, baseurl):
         return "GET","PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
     elif action == "find-count":
         return "GET","PurchaseOrderCollection/$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
-    elif action == "po-action":
-        
+    elif action == "po-action":        
         return "POST","$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"    
-	else:
+    else:
         return {}
 	
 def makeWebhookResult(data, req):
