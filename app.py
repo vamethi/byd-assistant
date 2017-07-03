@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-
-from __future__ import print_function
-from future.standard_library import install_aliases
-install_aliases()
-
 import http.client, base64
 
 import json
@@ -37,22 +32,19 @@ def webhook():
 def processRequest(req):
     conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
     baseurl = "/sap/byd/odata/cust/v1/purchasing/"
-    csrf = fetch_csrf(conn, baseurl)
-    print("csrf", csrf)
-    method, query = makeQuery(req, conn, baseurl)
+    auth = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')
+    csrf = fetch_csrf(conn, baseurl, auth)
+    headers = {
+                'authorization': "Basic " + auth,
+                'x-csrf-token': csrf
+              }    
+    method, query = makeQuery(req, conn, baseurl, headers)
     qry_url = baseurl + query
     print(qry_url)
-    base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
-    headers = {
-                'authorization': "Basic " + base64string,
-                'x-csrf-token': csrf
-              }
-
+    
     conn.request(method, qry_url, headers=headers)
     res = conn.getresponse()
     result = res.read()
-    print("result")
-    print(result)
 
     data = json.loads(result)
     print("data")
@@ -60,26 +52,37 @@ def processRequest(req):
     res = makeWebhookResult(data, req)
     return res	
 
-def fetch_csrf(conn, url):	
-    conn.request(method, qry_url, headers={'x-csrf-token': "fetch"})
-    reshdr = conn.getheaders()
-    print("response header:", reshdr)
-    return reshdr.get("x-csrf-token")
+def fetch_csrf(conn, url, auth): 
+    headers = {
+                'authorization': "Basic " + auth,
+                'x-csrf-token': "fetch"
+              }
+    conn.request("GET", url, headers=headers)
+    reshdr = conn.getresponse()
+    return reshdr.getheader('x-csrf-token')
 
-def makeQuery(req, conn, baseurl):
+def makeQuery(req, conn, baseurl, headers):
     result = req.get("result")
     parameters = result.get("parameters")
     poid = parameters.get("id")
     status = parameters.get("status")
+    action = parameters.get("po-action")
     print("PO ID and status ", poid, status)
 	
-    action = result.get("action")    
-    if action == "find-status":
+    intent = result.get("action")    
+    if intent == "find-status":
         return "GET","PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
-    elif action == "find-count":
+    elif intent == "find-count":
         return "GET","PurchaseOrderCollection/$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
-    elif action == "po-action":        
-        return "POST","$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"    
+    elif intent == "po-action":
+        qry_url = baseurl + "Query?ID='" + poid + "'"
+        conn.request("GET", qry_url, headers=headers)
+        res = conn.getresponse()
+        result = res.read()
+        data = json.loads(result)
+        print("action result", result)
+        node_id = data.get('d').get('results')[0].ObjectID
+        return "POST", action + "?" + "ObjectID='" + node_id +"'"
     else:
         return {}
 	
