@@ -44,7 +44,7 @@ def processRequest(req):
     print(qry_url)
     base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
     headers = {
-                'authorization': "Basic " + base64string
+                'authorization': "Basic " + base64string,
                 'x-csrf-token': csrf
               }
 
