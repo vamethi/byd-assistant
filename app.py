@@ -15,12 +15,12 @@ from flask import make_response
 
 # Flask app should start in global layout
 app = Flask(__name__)
-
+node_id
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
     req = request.get_json(silent=True, force=True)
-
+    print(node_id)
     #print("Request:")
     #print(json.dumps(req, indent=4))
 
@@ -35,29 +35,38 @@ def webhook():
 
 
 def processRequest(req):
-		conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
-		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/"
-		query = makeQuery(req)
-		qry_url = baseurl + query
-		print(qry_url)
-		base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
-		headers = {
-					'authorization': "Basic " + base64string
-				  }
+    conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
+    baseurl = "/sap/byd/odata/cust/v1/purchasing/"
+    csrf = fetch_csrf(conn, baseurl)
+    print("csrf", csrf)
+    method, query = makeQuery(req, conn, baseurl)
+    qry_url = baseurl + query
+    print(qry_url)
+    base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
+    headers = {
+                'authorization': "Basic " + base64string
+                'x-csrf-token': csrf
+              }
 
-		conn.request("GET", qry_url, headers=headers)
-		res = conn.getresponse()
-		result = res.read()
-		print("result")
-		print(result)
+    conn.request(method, qry_url, headers=headers)
+    res = conn.getresponse()
+    result = res.read()
+    print("result")
+    print(result)
 
-		data = json.loads(result)
-		print("data")
-		print(data)
-		res = makeWebhookResult(data, req)
-		return res	
+    data = json.loads(result)
+    print("data")
+    print(data)
+    res = makeWebhookResult(data, req)
+    return res	
 
-def makeQuery(req):
+def fetch_csrf(conn, url):	
+    conn.request(method, qry_url, headers={'x-csrf-token': "fetch"})
+    reshdr = conn.getheaders()
+    print("response header:", reshdr)
+    return reshdr.get("x-csrf-token")
+
+def makeQuery(req, conn, baseurl):
     result = req.get("result")
     parameters = result.get("parameters")
     poid = parameters.get("id")
@@ -65,11 +74,14 @@ def makeQuery(req):
     print("PO ID and status ", poid, status)
 	
     action = result.get("action")    
-    if action == "find-status":	
-        return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
-    elif action == "find-count":               
-        return "$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
-    else:
+    if action == "find-status":
+        return "GET","PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
+    elif action == "find-count":
+        return "GET","PurchaseOrderCollection/$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
+    elif action == "po-action":
+        
+        return "POST","$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"    
+	else:
         return {}
 	
 def makeWebhookResult(data, req):
@@ -77,6 +89,8 @@ def makeWebhookResult(data, req):
     if action == "find-status":		
         d = data.get('d')
         value = d.get('results')
+        node_id = value[0].ObjectID
+        print(node_id)
         print("json.results: ")
         print(json.dumps(value, indent=4))
         speech = "The status of Purchase Order ID " + str(value[0].get('PurchaseOrderID')) + \
