@@ -59,6 +59,7 @@ def fetch_csrf(conn, url, auth):
               }
     conn.request("GET", url, headers=headers)
     reshdr = conn.getresponse()
+    reshdr.read()
     return reshdr.getheader('x-csrf-token')
 
 def makeQuery(req, conn, baseurl, headers):
@@ -75,30 +76,30 @@ def makeQuery(req, conn, baseurl, headers):
     elif intent == "find-count":
         return "GET","PurchaseOrderCollection/$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
     elif intent == "po-action":
-        qry_url = baseurl + "Query?ID='" + poid + "'"
+        #qry_url = baseurl + "Query?ID='" + poid + "'"
+        qry_url = baseurl + "PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
         conn.request("GET", qry_url, headers=headers)
         res = conn.getresponse()
         result = res.read()
         data = json.loads(result)
-        print("action result", result)
-        node_id = data.get('d').get('results')[0].ObjectID
+        node_id = data.get('d').get('results')[0].get('ObjectID')
         return "POST", action + "?" + "ObjectID='" + node_id +"'"
     else:
         return {}
 	
 def makeWebhookResult(data, req):
-    action = req.get("result").get("action")    
-    if action == "find-status":		
+    intent = req.get("result").get("action")    
+    if intent == "find-status":		
         d = data.get('d')
         value = d.get('results')
-        node_id = value[0].ObjectID
+        node_id = value[0].get('ObjectID')
         print(node_id)
         print("json.results: ")
         print(json.dumps(value, indent=4))
         speech = "The status of Purchase Order ID " + str(value[0].get('PurchaseOrderID')) + \
              	 " is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
     
-    elif action == "find-count":        
+    elif intent == "find-count":        
         if int(data) > 1:
             speech = "There are " + str(data) + " purchase orders in the system with " + \
                       req.get("result").get("parameters").get("status") + " status"
