@@ -40,12 +40,13 @@ def processRequest(req):
               }    
     method, query = makeQuery(req, conn, baseurl, headers)
     qry_url = baseurl + query
-    print(qry_url)
+    print(method, qry_url, headers)
     
     conn.request(method, qry_url, headers=headers)
     res = conn.getresponse()
     result = res.read()
-
+    print(result)
+    
     data = json.loads(result)
     print("data")
     print(data)
