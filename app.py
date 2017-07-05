@@ -3,6 +3,7 @@ import http.client, base64
 
 import json
 import os
+import requests
 
 from flask import Flask
 from flask import request
@@ -10,12 +11,10 @@ from flask import make_response
 
 # Flask app should start in global layout
 app = Flask(__name__)
-node_id = ""
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
     req = request.get_json(silent=True, force=True)
-    print(node_id)
     #print("Request:")
     #print(json.dumps(req, indent=4))
 
@@ -30,69 +29,55 @@ def webhook():
 
 
 def processRequest(req):
-    conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
-    baseurl = "/sap/byd/odata/cust/v1/purchasing/"
-    auth = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')
-    csrf = fetch_csrf(conn, baseurl, auth)
-    headers = {
-                'authorization': "Basic " + auth,
-                'x-csrf-token': csrf
-              }    
-    method, query = makeQuery(req, conn, baseurl, headers)
+    session = requests.Session()
+
+    baseurl = "https://my316075.sapbydesign.com/sap/byd/odata/cust/v1/purchasing/"
+    session.headers.update({'authorization' : "Basic " + base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')})
+    session.headers.update({'x-csrf-token' : 'fetch'})
+    res = session.get(baseurl , data = {'user' :'odata_demo','password' : 'Welcome01'}, proxies = "")
+    session.headers.update({'x-csrf-token' : res.headers.get("x-csrf-token")})
+
+    method, query = makeQuery(req, baseurl, session)
     qry_url = baseurl + query
-    print(method, qry_url, headers)
+    print(qry_url)
+        
+    if method == 'get':
+        result = session.get(qry_url)
+    else:
+        result = session.post(qry_url)
     
-    conn.request(method, qry_url, headers=headers)
-    res = conn.getresponse()
-    result = res.read()
-    print(result)
-    
-    data = json.loads(result)
+    data = json.loads(result.text)
     print("data")
     print(data)
     res = makeWebhookResult(data, req)
     return res	
 
-def fetch_csrf(conn, url, auth): 
-    headers = {
-                'authorization': "Basic " + auth,
-                'x-csrf-token': "fetch"
-              }
-    conn.request("GET", url, headers=headers)
-    reshdr = conn.getresponse()
-    reshdr.read()
-    return reshdr.getheader('x-csrf-token')
-
-def makeQuery(req, conn, baseurl, headers):
+def makeQuery(req, baseurl, session):
     result = req.get("result")
     parameters = result.get("parameters")
     poid = parameters.get("id")
     status = parameters.get("status")
     action = parameters.get("po-action")
-    print("PO ID and status ", poid, status)
 	
     intent = result.get("action")    
     if intent == "find-status":
-        return "GET","PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
+        return "get" , "PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
     elif intent == "find-count":
-        return "GET","PurchaseOrderCollection/$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
+        return "get" , "PurchaseOrderCollection/$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
     elif intent == "po-action":
-        #qry_url = baseurl + "Query?ID='" + poid + "'"
-        qry_url = baseurl + "PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
-        conn.request("GET", qry_url, headers=headers)
-        res = conn.getresponse()
-        result = res.read()
+        qry_url = baseurl + "PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json"         
+        res = session.get(qry_url)
+        result = res.text
         data = json.loads(result)
         node_id = data.get('d').get('results')[0].get('ObjectID')
-        return "POST", action + "?" + "ObjectID='" + node_id +"'"
+        return "post" , action + "?" + "ObjectID='" + node_id +"'" + "'&%24format=json"
     else:
         return {}
 	
 def makeWebhookResult(data, req):
     intent = req.get("result").get("action")    
     if intent == "find-status":		
-        d = data.get('d')
-        value = d.get('results')
+        value = data.get('d').get('results')
         node_id = value[0].get('ObjectID')
         print(node_id)
         print("json.results: ")
@@ -110,6 +95,11 @@ def makeWebhookResult(data, req):
         else:
             speech = "There are no purchase orders in the system with " + \
                       req.get("result").get("parameters").get("status") + " status"
+    elif intent == "po-action":
+        value = data.get('d').get('results')
+        node_id = value.get('ObjectID')
+        speech = "The status of Purchase Order ID " + str(value.get('PurchaseOrderID')) + \
+             	 " is " + value.get('PurchaseOrderLifeCycleStatusCodeText')
     else:
         speech = "Sorry, I did not understand you! Please try again"
 	
@@ -120,7 +110,7 @@ def makeWebhookResult(data, req):
         "speech": speech,
         "displayText": speech,
         # "data": data,
-        #"contextOut": "",
+        "contextOut": node_id,
         "source": "byd-assistant"
     }
 
