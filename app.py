@@ -1,13 +1,9 @@
 #!/usr/bin/env python
-
-from __future__ import print_function
-from future.standard_library import install_aliases
-install_aliases()
-
 import http.client, base64
 
 import json
 import os
+import requests
 
 from flask import Flask
 from flask import request
@@ -16,11 +12,9 @@ from flask import make_response
 # Flask app should start in global layout
 app = Flask(__name__)
 
-
 @app.route('/webhook', methods=['POST'])
 def webhook():
     req = request.get_json(silent=True, force=True)
-
     #print("Request:")
     #print(json.dumps(req, indent=4))
 
@@ -35,54 +29,63 @@ def webhook():
 
 
 def processRequest(req):
-		conn = http.client.HTTPSConnection("my316075.sapbydesign.com")
-		baseurl = "/sap/byd/odata/cust/v1/purchasing/PurchaseOrderCollection/"
-		query = makeQuery(req)
-		qry_url = baseurl + query
-		print(qry_url)
-		base64string = base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')    
-		headers = {
-					'authorization': "Basic " + base64string
-				  }
+    session = requests.Session()
 
-		conn.request("GET", qry_url, headers=headers)
-		res = conn.getresponse()
-		result = res.read()
-		print("result")
-		print(result)
+    baseurl = "https://my316075.sapbydesign.com/sap/byd/odata/cust/v1/purchasing/"
+    session.headers.update({'authorization' : "Basic " + base64.encodestring(('%s:%s' % ("odata_demo", "Welcome01")).encode()).decode().replace('\n', '')})
+    session.headers.update({'x-csrf-token' : 'fetch'})
+    res = session.get(baseurl , data = {'user' :'odata_demo','password' : 'Welcome01'}, proxies = "")
+    session.headers.update({'x-csrf-token' : res.headers.get("x-csrf-token")})
 
-		data = json.loads(result)
-		print("data")
-		print(data)
-		res = makeWebhookResult(data, req)
-		return res	
+    method, query = makeQuery(req, baseurl, session)
+    qry_url = baseurl + query
+    print(qry_url)
+        
+    if method == 'get':
+        result = session.get(qry_url)
+    else:
+        result = session.post(qry_url)
+    
+    data = json.loads(result.text)
+    print("data")
+    print(data)
+    res = makeWebhookResult(data, req)
+    return res	
 
-def makeQuery(req):
+def makeQuery(req, baseurl, session):
     result = req.get("result")
     parameters = result.get("parameters")
     poid = parameters.get("id")
     status = parameters.get("status")
-    print("PO ID and status ", poid, status)
+    action = parameters.get("po-action")
 	
-    action = result.get("action")    
-    if action == "find-status":	
-        return "?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
-    elif action == "find-count":               
-        return "$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
+    intent = result.get("action")    
+    if intent == "find-status":
+        return "get" , "PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json" 
+    elif intent == "find-count":
+        return "get" , "PurchaseOrderCollection/$count?%24filter=PurchaseOrderLifeCycleStatusCodeText%20eq%20'" + status + "'"
+    elif intent == "po-action":
+        qry_url = baseurl + "PurchaseOrderCollection/?%24filter=PurchaseOrderID%20eq%20'" + poid + "'&%24format=json"         
+        res = session.get(qry_url)
+        result = res.text
+        data = json.loads(result)
+        node_id = data.get('d').get('results')[0].get('ObjectID')
+        return "post" , action + "?" + "ObjectID='" + node_id +"'" + "'&%24format=json"
     else:
         return {}
 	
 def makeWebhookResult(data, req):
-    action = req.get("result").get("action")    
-    if action == "find-status":		
-        d = data.get('d')
-        value = d.get('results')
+    intent = req.get("result").get("action")    
+    if intent == "find-status":		
+        value = data.get('d').get('results')
+        node_id = value[0].get('ObjectID')
+        print(node_id)
         print("json.results: ")
         print(json.dumps(value, indent=4))
         speech = "The status of Purchase Order ID " + str(value[0].get('PurchaseOrderID')) + \
              	 " is " + value[0].get('PurchaseOrderLifeCycleStatusCodeText')
     
-    elif action == "find-count":        
+    elif intent == "find-count":        
         if int(data) > 1:
             speech = "There are " + str(data) + " purchase orders in the system with " + \
                       req.get("result").get("parameters").get("status") + " status"
@@ -92,6 +95,11 @@ def makeWebhookResult(data, req):
         else:
             speech = "There are no purchase orders in the system with " + \
                       req.get("result").get("parameters").get("status") + " status"
+    elif intent == "po-action":
+        value = data.get('d').get('results')
+        node_id = value.get('ObjectID')
+        speech = "The status of Purchase Order ID " + str(value.get('PurchaseOrderID')) + \
+             	 " is " + value.get('PurchaseOrderLifeCycleStatusCodeText')
     else:
         speech = "Sorry, I did not understand you! Please try again"
 	
@@ -102,7 +110,7 @@ def makeWebhookResult(data, req):
         "speech": speech,
         "displayText": speech,
         # "data": data,
-        #"contextOut": "",
+        #"contextOut": node_id,
         "source": "byd-assistant"
     }
 
